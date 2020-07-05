@@ -11,9 +11,12 @@ import android.provider.CalendarContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.example.instragramclone.Adapter.PostAdapter;
+import com.example.instragramclone.Adapter.StoryAdapter;
 import com.example.instragramclone.Model.Post;
+import com.example.instragramclone.Model.Story;
 import com.example.instragramclone.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -31,6 +34,11 @@ public class HomeFragment extends Fragment {
     private PostAdapter postAdapter;
     private List<Post> postLists;
     private List<String> followingList;
+    ProgressBar progressBar;
+
+    private RecyclerView recyclerView_story;
+    private List<Story>storylist;
+    private StoryAdapter storyAdapter;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -50,6 +58,20 @@ public class HomeFragment extends Fragment {
         postLists = new ArrayList<>();
         postAdapter = new PostAdapter(getContext(), postLists);
         recyclerView.setAdapter(postAdapter);
+
+
+        recyclerView_story = view.findViewById(R.id.recycler_view_stories);
+        recyclerView_story.setHasFixedSize(true);
+        LinearLayoutManager linearLayoutManager1 = new LinearLayoutManager(getContext(),
+                LinearLayoutManager.HORIZONTAL,false);
+
+        recyclerView_story.setLayoutManager(linearLayoutManager1);
+        storylist = new ArrayList<>();
+        storyAdapter = new StoryAdapter(getContext(), storylist);
+        recyclerView_story.setAdapter(storyAdapter);
+
+        progressBar=view.findViewById(R.id.progress_circular);
+
         checkfollwing();
         return view;
     }
@@ -67,6 +89,8 @@ public class HomeFragment extends Fragment {
                     followingList.add(snapshot.getKey());
                 }
                 readPosts();
+                readStory();
+
             }
 
             @Override
@@ -91,6 +115,7 @@ public class HomeFragment extends Fragment {
                     }
                 }
                 postAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
             }
 
             @Override
@@ -99,4 +124,36 @@ public class HomeFragment extends Fragment {
             }
         });
     }
+
+    private void  readStory(){
+        DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference("Story");
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                long timecurrent=System.currentTimeMillis();
+                storylist.clear();
+                storylist.add(new Story("",0,0,"",FirebaseAuth.getInstance().getCurrentUser().getUid()));
+                for (String id :followingList){
+                    Story story=null;
+                    int countstory=0;
+                    for (DataSnapshot dataSnapshot1:dataSnapshot.child(id).getChildren()){
+                        story=dataSnapshot1.getValue(Story.class);
+                        if(timecurrent>story.getTimestart() && timecurrent<story.getTimeend()){
+                            countstory++;
+                        }
+                    }
+                    if(countstory>0){
+                        storylist.add(story);
+                    }
+                }
+                storyAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
 }

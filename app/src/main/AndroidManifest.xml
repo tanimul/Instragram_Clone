@@ -13,7 +13,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".EditProfileActivity"></activity>
+        <activity android:name=".StoryActivity"></activity>
+        <activity android:name=".AddStoryActivity" />
+        <activity android:name=".OptionsActivity" />
+        <activity android:name=".FollowerActivity" />
+        <activity android:name=".EditProfileActivity" />
         <activity android:name=".CommentActivity" />
         <activity android:name=".PostActivity" />
         <activity android:name=".MainActivity" />

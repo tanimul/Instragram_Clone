@@ -44,6 +44,9 @@ public class CommentActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
         getSupportActionBar().setTitle("Comments");
 
+        Intent intent = getIntent();
+        postid = intent.getStringExtra("postid");
+        publisherid = intent.getStringExtra("publisherid");
 
         binding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,15 +59,13 @@ public class CommentActivity extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         binding.recyclerView.setLayoutManager(linearLayoutManager);
         commentList = new ArrayList<>();
-        commentAdapter = new CommentAdapter(this, commentList);
+        commentAdapter = new CommentAdapter(this, commentList,postid);
         binding.recyclerView.setAdapter(commentAdapter);
 
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        Intent intent = getIntent();
-        postid = intent.getStringExtra("postid");
-        publisherid = intent.getStringExtra("publisherid");
+
 
         binding.post.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,11 +84,13 @@ public class CommentActivity extends AppCompatActivity {
     private void addcomment() {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Comments").child(postid);
 
+        String commentid=reference.push().getKey();
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("comment", binding.addComment.getText().toString());
         hashMap.put("publisher", firebaseUser.getUid());
+        hashMap.put("commentid", commentid);
 
-        reference.push().setValue(hashMap);
+        reference.child(commentid).setValue(hashMap);
         addNotifications();
         binding.addComment.setText("");
     }

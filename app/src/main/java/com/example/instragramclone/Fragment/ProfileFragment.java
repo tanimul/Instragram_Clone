@@ -3,6 +3,7 @@ package com.example.instragramclone.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Region;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,10 +26,11 @@ import com.bumptech.glide.Glide;
 import com.example.instragramclone.Adapter.CommentAdapter;
 import com.example.instragramclone.Adapter.MyphotoAdapter;
 import com.example.instragramclone.EditProfileActivity;
+import com.example.instragramclone.FollowerActivity;
 import com.example.instragramclone.Model.Post;
 import com.example.instragramclone.Model.User;
+import com.example.instragramclone.OptionsActivity;
 import com.example.instragramclone.R;
-import com.example.instragramclone.databinding.FragmentProfileBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -71,7 +74,7 @@ public class ProfileFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
 
@@ -141,7 +144,7 @@ public class ProfileFragment extends Fragment {
                             .child("following").child(profileid).setValue(true);
                     FirebaseDatabase.getInstance().getReference().child("Follow").child(profileid)
                             .child("followers").child(firebaseUser.getUid()).setValue(true);
-addNotifications();
+                    addNotifications();
                 } else if (btn.equals("following")) {
                     FirebaseDatabase.getInstance().getReference().child("Follow").child(firebaseUser.getUid())
                             .child("following").child(profileid).removeValue();
@@ -149,6 +152,12 @@ addNotifications();
                             .child("followers").child(firebaseUser.getUid()).removeValue();
 
                 }
+            }
+        });
+        options.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getContext(), OptionsActivity.class));
             }
         });
 
@@ -168,16 +177,35 @@ addNotifications();
             }
         });
 
+        followers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), FollowerActivity.class);
+                intent.putExtra("id", profileid);
+                intent.putExtra("title", "followers");
+                startActivity(intent);
+            }
+        });
+        following.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), FollowerActivity.class);
+                intent.putExtra("id", profileid);
+                intent.putExtra("title", "following");
+                startActivity(intent);
+            }
+        });
+
         return view;
     }
 
-    private void addNotifications(){
-        DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference("Notifications").child(profileid);
-        HashMap<String,Object> hashMap=new HashMap<>();
-        hashMap.put("userid",firebaseUser.getUid());
-        hashMap.put("text","stared following you");
-        hashMap.put("postid","");
-        hashMap.put("ispost",false);
+    private void addNotifications() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(profileid);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("userid", firebaseUser.getUid());
+        hashMap.put("text", "stared following you");
+        hashMap.put("postid", "");
+        hashMap.put("ispost", false);
         databaseReference.push().setValue(hashMap);
 
     }
@@ -190,6 +218,8 @@ addNotifications();
                 if (getContext() == null) {
                     return;
                 }
+
+                Log.d("ddddd",""+profileid);
                 User user = dataSnapshot.getValue(User.class);
                 Glide.with(getContext()).load(user.getImageurl()).into(imageprofile);
                 username.setText(user.getUsername());
